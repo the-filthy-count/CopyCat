@@ -137,7 +137,7 @@ def empty_trash(request: Request):
 @router.post("/settings")
 def save_settings(
     input_dirs: str = Form(...),
-    trash_dir: str = Form(""),
+    trash_dirname: str = Form(".copycat-trash"),
     delete_mode: str = Form("trash"),
     thumb_width: int = Form(240),
     similarity_threshold: float = Form(0.15),
@@ -148,7 +148,7 @@ def save_settings(
 ):
     set_settings({
         "input_dirs": input_dirs,
-        "trash_dir": trash_dir,
+        "trash_dirname": trash_dirname.strip() or ".copycat-trash",
         "delete_mode": delete_mode,
         "thumb_width": str(thumb_width),
         "similarity_threshold": str(similarity_threshold),

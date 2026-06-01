@@ -43,15 +43,21 @@ def _avoid_collision(dest: Path, tag: str = "") -> Path:
 
 
 def _trash_target(src: Path) -> Path:
-    """Compute a collision-safe destination under the trash folder.
+    """Compute a collision-safe destination in the source dir's own trash.
 
-    Mirrors the file's path relative to whichever input dir contains it so the
-    trash keeps a sensible structure even across multiple input directories.
+    Trash is per-directory: a file is moved into ``<its input dir>/<trash name>``
+    preserving its path relative to that input dir. Falls back to the primary
+    input dir's trash if the file isn't under any configured directory.
     """
     settings = config.get_settings()
     root = _matching_input(src)
-    rel = src.resolve().relative_to(root) if root else Path(src.name)
-    dest = settings.trash_path / rel
+    if root is not None:
+        rel = src.resolve().relative_to(root)
+        trash_root = settings.trash_path_for(root)
+    else:
+        rel = Path(src.name)
+        trash_root = settings.trash_path_for(settings.input_path)
+    dest = trash_root / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     return _avoid_collision(dest)
 
@@ -162,10 +168,10 @@ def empty_trash() -> int:
             session.add(video)
             count += 1
         session.commit()
-    # Best-effort cleanup of the now-empty trash tree.
-    trash_root = settings.trash_path
-    if trash_root.exists():
-        shutil.rmtree(trash_root, ignore_errors=True)
+    # Best-effort cleanup of every per-directory trash tree.
+    for trash_root in settings.trash_paths:
+        if trash_root.exists():
+            shutil.rmtree(trash_root, ignore_errors=True)
     logger.info("emptied trash: %s files", count)
     cache.bump()
     return count

@@ -7,7 +7,8 @@ services:
     environment:
       INPUT_DIR: /media
       DATA_DIR: /data
-      # TRASH_DIR defaults to <INPUT_DIR>/.copycat-trash if unset.
+      # Per-directory trash: a TRASH_DIRNAME folder is created inside each input dir.
+      TRASH_DIRNAME: .copycat-trash
       DELETE_MODE: trash          # trash | permanent
       THUMB_WIDTH: "240"
       SIMILARITY_THRESHOLD: "0.15"

@@ -25,7 +25,8 @@ VIDEO_EXTENSIONS = {
 # input_dirs is a newline/comma separated list of folders to scan.
 DEFAULTS: dict[str, str] = {
     "input_dirs": os.environ.get("INPUT_DIRS") or os.environ.get("INPUT_DIR", "/media"),
-    "trash_dir": os.environ.get("TRASH_DIR", ""),  # empty -> derived from first input dir
+    # Name of the trash subfolder created inside each input dir (per-directory trash).
+    "trash_dirname": os.environ.get("TRASH_DIRNAME", ".copycat-trash"),
     "delete_mode": os.environ.get("DELETE_MODE", "trash"),  # trash | permanent
     "thumb_width": os.environ.get("THUMB_WIDTH", "240"),
     "similarity_threshold": os.environ.get("SIMILARITY_THRESHOLD", "0.15"),
@@ -45,7 +46,7 @@ FRAMES_PER_STRIP = 10
 @dataclass
 class Settings:
     input_dirs: str            # newline/comma separated list of folders
-    trash_dir: str
+    trash_dirname: str         # trash subfolder name created inside each input dir
     delete_mode: str
     frames_per_strip: int
     thumb_width: int
@@ -70,15 +71,18 @@ class Settings:
 
     @property
     def input_path(self) -> Path:
-        """Primary input dir (first) — used for the default trash location."""
+        """Primary input dir (first)."""
         paths = self.input_paths
         return paths[0] if paths else Path("/media")
 
+    def trash_path_for(self, input_dir: Path) -> Path:
+        """Per-directory trash folder for a given input directory."""
+        return Path(input_dir) / self.trash_dirname
+
     @property
-    def trash_path(self) -> Path:
-        if self.trash_dir:
-            return Path(self.trash_dir)
-        return self.input_path / ".copycat-trash"
+    def trash_paths(self) -> list[Path]:
+        """Every input directory's trash folder."""
+        return [self.trash_path_for(p) for p in self.input_paths]
 
 
 def get_settings() -> Settings:
@@ -89,7 +93,7 @@ def get_settings() -> Settings:
     raw = {**DEFAULTS, **get_all_settings()}
     return Settings(
         input_dirs=raw["input_dirs"],
-        trash_dir=raw["trash_dir"],
+        trash_dirname=raw["trash_dirname"],
         delete_mode=raw["delete_mode"],
         frames_per_strip=FRAMES_PER_STRIP,
         thumb_width=int(raw["thumb_width"]),

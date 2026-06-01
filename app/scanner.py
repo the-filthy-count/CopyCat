@@ -22,7 +22,6 @@ def scan_input_folder() -> ScanRun:
     """Walk every input dir; insert new files, re-queue changed, drop missing."""
     settings = config.get_settings()
     roots = settings.input_paths
-    trash = settings.trash_path.resolve()
     resolved_roots = [r.resolve() for r in roots if r.exists()]
 
     run = ScanRun(started_at=utcnow())
@@ -34,16 +33,22 @@ def scan_input_folder() -> ScanRun:
         for root in roots:
             if not root.exists():
                 continue
+            # Skip this directory's own (per-directory) trash folder.
+            try:
+                trash = settings.trash_path_for(root).resolve()
+            except OSError:
+                trash = None
             walk = root.rglob("*") if settings.recursive else root.glob("*")
             for path in walk:
                 if not path.is_file() or not _is_video(path):
                     continue
-                # Skip anything inside the trash folder.
-                try:
-                    if trash in path.resolve().parents or path.resolve() == trash:
-                        continue
-                except OSError:
-                    pass
+                if trash is not None:
+                    try:
+                        rp = path.resolve()
+                        if rp == trash or trash in rp.parents:
+                            continue
+                    except OSError:
+                        pass
 
                 seen += 1
                 try:

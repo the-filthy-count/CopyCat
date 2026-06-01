@@ -13,9 +13,9 @@
         <div class="muted small">One folder per line (container paths). All are scanned.</div></td>
     </tr>
     <tr>
-      <td><label>Trash folder</label></td>
-      <td><input type="text" name="trash_dir" value="{{ settings.trash_dir }}" placeholder="(default: <input>/.copycat-trash)">
-        <div class="muted small">Where trashed files are moved. Leave blank for the default.</div></td>
+      <td><label>Trash folder name</label></td>
+      <td><input type="text" name="trash_dirname" value="{{ settings.trash_dirname }}">
+        <div class="muted small">A subfolder of this name is created inside <em>each</em> input folder; trashed files move there (and restore to their original folder).</div></td>
     </tr>
     <tr>
       <td><label>Delete mode</label></td>
