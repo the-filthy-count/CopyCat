@@ -1,7 +1,7 @@
-<div id="queue-status" class="cards"
+<div id="queue-status" class="queue-mini"
      hx-get="/api/status" hx-trigger="every 2s" hx-swap="outerHTML">
-  <div class="stat"><div class="n">{{ counts.pending }}</div><div class="l">Pending</div></div>
-  <div class="stat"><div class="n">{{ counts.processing }}</div><div class="l">Processing</div></div>
-  <div class="stat"><div class="n">{{ counts.done }}</div><div class="l">Processed</div></div>
-  <div class="stat"><div class="n">{{ counts.error }}</div><div class="l">Errors</div></div>
+  <div class="qm {{ 'busy' if counts.pending }}"><div class="qm-n">{{ counts.pending }}</div><div class="qm-l">Pending</div></div>
+  <div class="qm {{ 'busy' if counts.processing }}"><div class="qm-n">{{ counts.processing }}</div><div class="qm-l">Processing</div></div>
+  <div class="qm"><div class="qm-n">{{ counts.done }}</div><div class="qm-l">Processed</div></div>
+  <div class="qm {{ 'err' if counts.error }}"><div class="qm-n">{{ counts.error }}</div><div class="qm-l">Errors</div></div>
 </div>
