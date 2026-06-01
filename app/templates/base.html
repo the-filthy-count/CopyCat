@@ -15,7 +15,10 @@
 <body class="{% block body_class %}{% endblock %}">
   <div class="bg-aurora" aria-hidden="true"></div>
   <nav class="nav">
-    <a class="brand" href="/"><img src="/static/logo.webp" alt="" class="logo"> <span class="brand-text">CopyCat</span></a>
+    <a class="brand" href="/" aria-label="CopyCat home">
+      <img src="/static/logo2.svg" alt="" class="brand-cat">
+      <img src="/static/logo1.svg" alt="CopyCat" class="brand-word">
+    </a>
     <div class="nav-links">
       <a href="/" class="navi {{ 'on' if active == 'dashboard' }}" aria-label="Dashboard" data-tip="Dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>

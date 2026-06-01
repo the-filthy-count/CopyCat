@@ -90,21 +90,17 @@ a:hover { color: #6cf0a3; }
   top: 0;
   z-index: 50;
 }
-.nav .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
-.nav .brand .logo {
-  height: 34px; width: auto;
-  filter: drop-shadow(0 0 10px rgba(54, 224, 122, 0.55));
+.nav .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+/* Logos are solid black artwork; invert to white for the dark bar (this also
+   flips the cat's white eyes to black so they stay visible) + a green glow. */
+.nav .brand img {
+  width: auto;
+  filter: invert(1) drop-shadow(0 0 7px rgba(54, 224, 122, 0.5));
+  transition: filter 0.2s ease;
 }
-.brand-text {
-  font-family: "Sora", system-ui, sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: 0.5px;
-  background: linear-gradient(92deg, #fff 0%, #b9c2ff 55%, var(--accent) 130%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+.nav .brand .brand-cat { height: 38px; }
+.nav .brand .brand-word { height: 22px; }
+.nav .brand:hover img { filter: invert(1) drop-shadow(0 0 11px rgba(54, 224, 122, 0.8)); }
 .nav-links { display: flex; gap: 8px; align-items: center; }
 .nav-links a.navi {
   position: relative;
