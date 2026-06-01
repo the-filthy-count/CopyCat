@@ -1,0 +1,6 @@
+{# Live dashboard fragment. The queue mini-stats are the primary swap target
+   (#queue-status); the figures and charts piggy-back as out-of-band swaps so a
+   single 2s poll refreshes the whole dashboard as processing happens. #}
+{% include "partials/status.html" %}
+{% with oob=True %}{% include "partials/dash_figures.html" %}{% endwith %}
+{% with oob=True %}{% include "partials/dash_charts.html" %}{% endwith %}

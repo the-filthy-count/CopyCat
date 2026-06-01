@@ -1,6 +1,7 @@
 """Read helpers shared between page and API routes."""
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
@@ -8,6 +9,81 @@ from sqlmodel import Session, func, select
 
 from . import config, hashing
 from .models import ScanRun, State, Status, Video
+
+# Donut geometry (shared with the dashboard template).
+DONUT_R = 52
+DONUT_CIRC = 2 * math.pi * DONUT_R
+
+
+def _donut_segments(parts: List[tuple]) -> List[dict]:
+    """Build SVG stroke-dash segments for a donut from (label, value, color)."""
+    total = sum(v for _, v, _ in parts) or 1
+    segments = []
+    accum = 0.0
+    for label, value, color in parts:
+        if value <= 0:
+            continue
+        frac = value / total
+        seg_len = frac * DONUT_CIRC
+        segments.append({
+            "label": label,
+            "value": value,
+            "color": color,
+            "pct": round(frac * 100),
+            "dash": f"{seg_len:.2f} {DONUT_CIRC - seg_len:.2f}",
+            "offset": f"{-accum:.2f}",
+        })
+        accum += seg_len
+    return segments
+
+
+def dashboard_data(session: Session) -> dict:
+    """Assemble every dynamic value the dashboard renders (page + live poll)."""
+    counts = queue_counts(session)
+    scan = latest_scan(session)
+    groups = duplicate_groups(session)
+    reclaimable = reclaimable_bytes(groups)
+    active = session.exec(select(Video).where(Video.state == State.active)).all()
+    errors = [v for v in active if v.status == Status.error]
+
+    total_size = sum(v.size or 0 for v in active)
+    done_active = [v for v in active if v.status == Status.done]
+    in_groups = sum(len(g) for g in groups)
+    unique = max(len(done_active) - in_groups, 0)
+
+    donut = _donut_segments([
+        ("Unique", unique, "#36e07a"),
+        ("In duplicate groups", in_groups, "#ffc14d"),
+        ("Errors", len(errors), "#ff5f72"),
+    ])
+
+    top_groups = []
+    for g in groups[:6]:
+        group_size = sum(v.size or 0 for v in g)
+        top_groups.append({
+            "name": g[0].filename,
+            "members": len(g),
+            "size": group_size,
+            "reclaim": sum(v.size or 0 for v in g[1:]),
+        })
+    max_group_size = max((tg["size"] for tg in top_groups), default=1) or 1
+
+    return {
+        "counts": counts,
+        "scan": scan,
+        "group_count": len(groups),
+        "reclaimable": reclaimable,
+        "total_size": total_size,
+        "errors": errors,
+        "unique": unique,
+        "in_groups": in_groups,
+        "donut": donut,
+        "donut_total": unique + in_groups + len(errors),
+        "donut_r": DONUT_R,
+        "donut_circ": round(DONUT_CIRC, 2),
+        "top_groups": top_groups,
+        "max_group_size": max_group_size,
+    }
 
 
 def queue_counts(session: Session) -> Dict[str, int]:

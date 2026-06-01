@@ -28,12 +28,12 @@ def status(request: Request):
 
 
 def _status_partial(request: Request) -> HTMLResponse:
+    """Live dashboard fragment: queue stats + out-of-band figures & charts."""
     with get_session() as session:
-        counts = queries.queue_counts(session)
-        scan_run = queries.latest_scan(session)
+        data = queries.dashboard_data(session)
     return templates.TemplateResponse(
-        "partials/status.html",
-        {"request": request, "counts": counts, "scan": scan_run},
+        "partials/dashboard_live.html",
+        {"request": request, **data},
     )
 
 
