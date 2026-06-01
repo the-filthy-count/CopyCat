@@ -1,0 +1,7 @@
+<div id="dash-gauge" class="panel glass side-panel chart-storage"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2>Reclaimable space</h2>
+  {% set pct = (reclaimable / total_size * 100) if total_size else 0 %}
+  <div class="gauge-big">{{ reclaimable | human_size }}</div>
+  <div class="gauge-sub muted small">of {{ total_size | human_size }} in the library</div>
+  <div class="bar-track"><div class="bar-fill" style="width: {{ pct if pct <= 100 else 100 }}%"></div></div>
+</div>

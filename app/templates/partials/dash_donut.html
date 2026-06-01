@@ -1,0 +1,26 @@
+<div id="dash-donut" class="panel glass side-panel chart-donut"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2>Library composition</h2>
+  {% if donut_total %}
+  <div class="donut-wrap">
+    <svg viewBox="0 0 140 140" class="donut">
+      <circle cx="70" cy="70" r="{{ donut_r }}" class="donut-track"/>
+      {% for s in donut %}
+      <circle cx="70" cy="70" r="{{ donut_r }}"
+              stroke="{{ s.color }}"
+              stroke-dasharray="{{ s.dash }}"
+              stroke-dashoffset="{{ s.offset }}"/>
+      {% endfor %}
+      <text x="70" y="64" class="donut-num">{{ donut_total }}</text>
+      <text x="70" y="84" class="donut-cap">videos</text>
+    </svg>
+    <ul class="legend">
+      {% for s in donut %}
+      <li><span class="dot" style="background:{{ s.color }}"></span>
+        {{ s.label }} <b>{{ s.value }}</b></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <div class="empty-state small">Nothing processed yet.</div>
+  {% endif %}
+</div>

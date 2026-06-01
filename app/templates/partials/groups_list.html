@@ -6,7 +6,6 @@
       <span class="small">Run a scan from the Dashboard, or adjust the similarity threshold in Settings.</span>
     </div>
   {% else %}
-    <p class="muted small">{{ groups|length }} group(s) · {{ reclaimable | human_size }} reclaimable if you keep one per group.</p>
     {% for group in groups %}
       {% set is_exact = (group | map(attribute='sha256') | unique | list | length == 1) %}
       <div class="group">

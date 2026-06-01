@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body>
   <div class="bg-aurora" aria-hidden="true"></div>
   <nav class="nav">
     <a class="brand" href="/" aria-label="CopyCat home">
@@ -20,9 +20,6 @@
       <img src="/static/logo1.svg" alt="CopyCat" class="brand-word">
     </a>
     <div class="nav-links">
-      <a href="/" class="navi {{ 'on' if active == 'dashboard' }}" aria-label="Dashboard" data-tip="Dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      </a>
       <a href="/groups" class="navi {{ 'on' if active == 'groups' }}" aria-label="Duplicates" data-tip="Duplicates">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
       </a>
@@ -37,15 +34,30 @@
       </a>
     </div>
   </nav>
-  <main class="container">
-    {% block content %}{% endblock %}
-  </main>
+
+  <div class="layout">
+    <!-- Persistent dashboard rail (present on every page; loads live via HTMX) -->
+    <aside class="dash-side glass">
+      <div class="side-head"><h1>Overview</h1></div>
+      <button class="btn primary big" hx-post="/api/scan" hx-target="#queue-status" hx-swap="outerHTML">
+        🔍 Scan input folder
+      </button>
+      <div id="queue-status" class="queue-mini" hx-get="/api/status" hx-trigger="load, every 2s" hx-swap="outerHTML"></div>
+      <div id="dash-donut" class="panel glass side-panel"></div>
+      <div id="dash-gauge" class="panel glass side-panel"></div>
+    </aside>
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
 
   <!-- Lightbox overlay for enlarged stills -->
   <div id="lightbox" class="lightbox" onclick="this.classList.remove('show')">
     <img id="lightbox-img" src="" alt="">
   </div>
   <script>
+    // Enlarge a still on click.
     document.addEventListener('click', function (e) {
       const t = e.target;
       if (t.matches('img.thumb')) {
@@ -54,6 +66,20 @@
         box.classList.add('show');
       }
     });
+    // Synchronise horizontal scroll across every filmstrip.
+    (function () {
+      let syncing = false;
+      document.addEventListener('scroll', function (e) {
+        const el = e.target;
+        if (syncing || !el.classList || !el.classList.contains('film')) return;
+        syncing = true;
+        const x = el.scrollLeft;
+        document.querySelectorAll('.film').forEach(function (f) {
+          if (f !== el) f.scrollLeft = x;
+        });
+        requestAnimationFrame(function () { syncing = false; });
+      }, true);  // capture: scroll events don't bubble
+    })();
   </script>
 </body>
 </html>
