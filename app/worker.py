@@ -15,7 +15,7 @@ from pathlib import Path
 
 from sqlmodel import select
 
-from . import config, filmstrip, grouping, hashing
+from . import cache, config, filmstrip, grouping, hashing
 from .db import get_session
 from .models import Status, Video, utcnow
 from .probe import probe
@@ -169,10 +169,12 @@ def _loop() -> None:
                 logger.info("scan complete: %s seen, %s queued", run.seen, run.discovered)
             except Exception:
                 logger.exception("scan failed")
+            cache.bump()
 
         pending_id = _next_pending_id()
         if pending_id is not None:
             _process_one(pending_id)
+            cache.bump()
             dirty = True
             continue  # keep draining the queue before grouping
 
@@ -182,6 +184,7 @@ def _loop() -> None:
                 _recompute_signatures()
             except Exception:
                 logger.exception("recompute failed")
+            cache.bump()
             dirty = True
             continue
 
@@ -193,6 +196,7 @@ def _loop() -> None:
                 grouping.regroup()
             except Exception:
                 logger.exception("regroup failed")
+            cache.bump()
             continue
 
         # Nothing to do: sleep until woken or a periodic re-check.

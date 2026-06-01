@@ -1,5 +1,5 @@
 data/
-sample-media/
+sample-media*/
 __pycache__/
 *.pyc
 .venv/

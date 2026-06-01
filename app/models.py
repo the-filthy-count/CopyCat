@@ -28,6 +28,7 @@ class State(str, Enum):
 class Video(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     path: str = Field(index=True, unique=True)
+    original_path: Optional[str] = None  # pre-trash location, for accurate restore
     filename: str = ""
 
     # Identity / change detection.

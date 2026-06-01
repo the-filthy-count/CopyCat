@@ -8,9 +8,9 @@
 <form method="post" action="/api/settings">
   <table class="form">
     <tr>
-      <td><label>Input folder</label></td>
-      <td><input type="text" name="input_dir" value="{{ settings.input_dir }}">
-        <div class="muted small">Folder scanned for videos (container path).</div></td>
+      <td><label>Input folders</label></td>
+      <td><textarea name="input_dirs" rows="3" spellcheck="false">{{ settings.input_dir_list | join('\n') }}</textarea>
+        <div class="muted small">One folder per line (container paths). All are scanned.</div></td>
     </tr>
     <tr>
       <td><label>Trash folder</label></td>

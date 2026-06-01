@@ -19,10 +19,11 @@ def _is_video(path: Path) -> bool:
 
 
 def scan_input_folder() -> ScanRun:
-    """Walk INPUT_DIR; insert new files, re-queue changed ones, drop missing ones."""
+    """Walk every input dir; insert new files, re-queue changed, drop missing."""
     settings = config.get_settings()
-    root = settings.input_path
+    roots = settings.input_paths
     trash = settings.trash_path.resolve()
+    resolved_roots = [r.resolve() for r in roots if r.exists()]
 
     run = ScanRun(started_at=utcnow())
     seen = 0
@@ -30,7 +31,9 @@ def scan_input_folder() -> ScanRun:
     removed = 0
 
     with get_session() as session:
-        if root.exists():
+        for root in roots:
+            if not root.exists():
+                continue
             walk = root.rglob("*") if settings.recursive else root.glob("*")
             for path in walk:
                 if not path.is_file() or not _is_video(path):
@@ -75,15 +78,26 @@ def scan_input_folder() -> ScanRun:
                     session.add(existing)
                     discovered += 1
 
-        # Prune records whose files have disappeared from disk. Active and
-        # trashed videos point at real files; if those are gone (deleted/moved
-        # outside the app, or trash emptied externally), forget them and clean
-        # up their thumbnails. Permanently-deleted rows are left as history.
+        # Prune records that should no longer appear: a file gone from disk, or
+        # an active video whose folder is no longer in the input-dir list.
+        # Trashed videos live under the trash folder, so only drop them if the
+        # file itself is missing. Permanently-deleted rows are kept as history.
+        def _under_a_root(p: Path) -> bool:
+            try:
+                rp = p.resolve()
+            except OSError:
+                return False
+            return any(root == rp or root in rp.parents for root in resolved_roots)
+
         tracked = session.exec(
             select(Video).where(Video.state.in_([State.active, State.trashed]))
         ).all()
         for video in tracked:
-            if Path(video.path).exists():
+            path = Path(video.path)
+            gone = not path.exists()
+            dropped = (video.state == State.active and not gone
+                       and not _under_a_root(path))
+            if not gone and not dropped:
                 continue
             thumbs = filmstrip.thumb_dir_for(video.id)
             if thumbs.exists():

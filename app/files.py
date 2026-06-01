@@ -7,37 +7,53 @@ from pathlib import Path
 
 from sqlmodel import select
 
-from . import config, filmstrip
+from . import cache, config, filmstrip
 from .db import get_session
 from .models import State, Video, utcnow
 
 logger = logging.getLogger("copycat.files")
 
 
-def _relative_to_input(path: Path, input_dir: Path) -> Path:
+def _matching_input(path: Path) -> Path | None:
+    """Return the configured input dir that contains ``path`` (if any)."""
     try:
-        return path.relative_to(input_dir)
-    except ValueError:
-        # Outside input dir: fall back to the bare filename.
-        return Path(path.name)
+        rp = path.resolve()
+    except OSError:
+        return None
+    for root in config.get_settings().input_paths:
+        try:
+            rr = root.resolve()
+        except OSError:
+            continue
+        if rr == rp or rr in rp.parents:
+            return rr
+    return None
+
+
+def _avoid_collision(dest: Path, tag: str = "") -> Path:
+    if not dest.exists():
+        return dest
+    stem, suffix = dest.stem, dest.suffix
+    i = 1
+    while True:
+        candidate = dest.with_name(f"{stem}__{tag}{i}{suffix}")
+        if not candidate.exists():
+            return candidate
+        i += 1
 
 
 def _trash_target(src: Path) -> Path:
-    """Compute a collision-safe destination under the trash folder."""
+    """Compute a collision-safe destination under the trash folder.
+
+    Mirrors the file's path relative to whichever input dir contains it so the
+    trash keeps a sensible structure even across multiple input directories.
+    """
     settings = config.get_settings()
-    rel = _relative_to_input(src, settings.input_path.resolve())
+    root = _matching_input(src)
+    rel = src.resolve().relative_to(root) if root else Path(src.name)
     dest = settings.trash_path / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if dest.exists():
-        stem, suffix = dest.stem, dest.suffix
-        i = 1
-        while True:
-            candidate = dest.with_name(f"{stem}__{i}{suffix}")
-            if not candidate.exists():
-                dest = candidate
-                break
-            i += 1
-    return dest
+    return _avoid_collision(dest)
 
 
 def trash_video(video_id: int) -> bool:
@@ -46,6 +62,7 @@ def trash_video(video_id: int) -> bool:
         if video is None or video.state != State.active:
             return False
         src = Path(video.path)
+        video.original_path = str(src.resolve())  # remember for accurate restore
         if src.exists():
             dest = _trash_target(src)
             shutil.move(str(src), str(dest))
@@ -56,34 +73,34 @@ def trash_video(video_id: int) -> bool:
         session.add(video)
         session.commit()
         logger.info("trashed video %s", video_id)
+        cache.bump()
         return True
 
 
 def restore_video(video_id: int) -> bool:
-    """Move a trashed file back to its original location under input dir."""
-    settings = config.get_settings()
+    """Move a trashed file back to its original location."""
     with get_session() as session:
         video = session.get(Video, video_id)
         if video is None or video.state != State.trashed:
             return False
         current = Path(video.path)
-        rel = _relative_to_input(current, settings.trash_path.resolve())
-        dest = settings.input_path / rel
+        # Prefer the exact original path; fall back to the first input dir.
+        if video.original_path:
+            dest = Path(video.original_path)
+        else:
+            dest = config.get_settings().input_path / current.name
         dest.parent.mkdir(parents=True, exist_ok=True)
-        if dest.exists():
-            stem, suffix = dest.stem, dest.suffix
-            i = 1
-            while dest.exists():
-                dest = dest.with_name(f"{stem}__restored{i}{suffix}")
-                i += 1
+        dest = _avoid_collision(dest, tag="restored")
         if current.exists():
             shutil.move(str(current), str(dest))
         video.path = str(dest.resolve())
+        video.original_path = None
         video.state = State.active
         video.processed_at = utcnow()
         session.add(video)
         session.commit()
         logger.info("restored video %s", video_id)
+        cache.bump()
         return True
 
 
@@ -111,6 +128,7 @@ def delete_video_permanent(video_id: int) -> bool:
         session.add(video)
         session.commit()
         logger.info("permanently deleted video %s", video_id)
+        cache.bump()
         return True
 
 
@@ -149,4 +167,5 @@ def empty_trash() -> int:
     if trash_root.exists():
         shutil.rmtree(trash_root, ignore_errors=True)
     logger.info("emptied trash: %s files", count)
+    cache.bump()
     return count

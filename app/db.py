@@ -21,13 +21,29 @@ engine = create_engine(
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    _migrate_schema()
     # Seed any missing settings from env-derived defaults.
     with Session(engine) as session:
-        existing = {s.key for s in session.exec(select(Setting)).all()}
+        rows = session.exec(select(Setting)).all()
+        existing = {s.key for s in rows}
+        # Migrate a legacy single "input_dir" setting to "input_dirs".
+        if "input_dirs" not in existing and "input_dir" in existing:
+            legacy = next(s.value for s in rows if s.key == "input_dir")
+            session.add(Setting(key="input_dirs", value=legacy))
+            existing.add("input_dirs")
         for key, value in config.DEFAULTS.items():
             if key not in existing:
                 session.add(Setting(key=key, value=value))
         session.commit()
+
+
+def _migrate_schema() -> None:
+    """Add columns introduced after a DB was first created (SQLite ALTER)."""
+    with engine.connect() as conn:
+        cols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(video)").fetchall()}
+        if "original_path" not in cols:
+            conn.exec_driver_sql("ALTER TABLE video ADD COLUMN original_path VARCHAR")
+            conn.commit()
 
 
 @contextmanager

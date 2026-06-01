@@ -22,9 +22,10 @@ VIDEO_EXTENSIONS = {
 }
 
 # Setting keys persisted in the DB, with their env-seeded defaults.
+# input_dirs is a newline/comma separated list of folders to scan.
 DEFAULTS: dict[str, str] = {
-    "input_dir": os.environ.get("INPUT_DIR", "/media"),
-    "trash_dir": os.environ.get("TRASH_DIR", ""),  # empty -> derived from input_dir
+    "input_dirs": os.environ.get("INPUT_DIRS") or os.environ.get("INPUT_DIR", "/media"),
+    "trash_dir": os.environ.get("TRASH_DIR", ""),  # empty -> derived from first input dir
     "delete_mode": os.environ.get("DELETE_MODE", "trash"),  # trash | permanent
     "thumb_width": os.environ.get("THUMB_WIDTH", "240"),
     "similarity_threshold": os.environ.get("SIMILARITY_THRESHOLD", "0.15"),
@@ -43,7 +44,7 @@ FRAMES_PER_STRIP = 10
 
 @dataclass
 class Settings:
-    input_dir: str
+    input_dirs: str            # newline/comma separated list of folders
     trash_dir: str
     delete_mode: str
     frames_per_strip: int
@@ -55,8 +56,23 @@ class Settings:
     recursive: bool
 
     @property
+    def input_dir_list(self) -> list[str]:
+        out = []
+        for chunk in self.input_dirs.replace(",", "\n").splitlines():
+            c = chunk.strip()
+            if c:
+                out.append(c)
+        return out
+
+    @property
+    def input_paths(self) -> list[Path]:
+        return [Path(p) for p in self.input_dir_list]
+
+    @property
     def input_path(self) -> Path:
-        return Path(self.input_dir)
+        """Primary input dir (first) — used for the default trash location."""
+        paths = self.input_paths
+        return paths[0] if paths else Path("/media")
 
     @property
     def trash_path(self) -> Path:
@@ -72,7 +88,7 @@ def get_settings() -> Settings:
 
     raw = {**DEFAULTS, **get_all_settings()}
     return Settings(
-        input_dir=raw["input_dir"],
+        input_dirs=raw["input_dirs"],
         trash_dir=raw["trash_dir"],
         delete_mode=raw["delete_mode"],
         frames_per_strip=FRAMES_PER_STRIP,

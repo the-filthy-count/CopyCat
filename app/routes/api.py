@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import config, files, queries
+from .. import cache, config, files, queries
 from ..db import get_session, set_settings
 from ..models import State, Video
 from ..templating import templates
@@ -28,9 +28,8 @@ def status(request: Request):
 
 
 def _status_partial(request: Request) -> HTMLResponse:
-    """Live dashboard fragment: queue stats + out-of-band figures & charts."""
-    with get_session() as session:
-        data = queries.dashboard_data(session)
+    """Live dashboard fragment: queue stats + out-of-band donut & gauge."""
+    data = cache.get_dashboard_data()
     return templates.TemplateResponse(
         "partials/dashboard_live.html",
         {"request": request, **data},
@@ -137,7 +136,7 @@ def empty_trash(request: Request):
 
 @router.post("/settings")
 def save_settings(
-    input_dir: str = Form(...),
+    input_dirs: str = Form(...),
     trash_dir: str = Form(""),
     delete_mode: str = Form("trash"),
     thumb_width: int = Form(240),
@@ -148,7 +147,7 @@ def save_settings(
     recursive: bool = Form(False),
 ):
     set_settings({
-        "input_dir": input_dir,
+        "input_dirs": input_dirs,
         "trash_dir": trash_dir,
         "delete_mode": delete_mode,
         "thumb_width": str(thumb_width),

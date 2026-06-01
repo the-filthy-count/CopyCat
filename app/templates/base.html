@@ -38,9 +38,8 @@
   <div class="layout">
     <!-- Persistent dashboard rail (present on every page; loads live via HTMX) -->
     <aside class="dash-side glass">
-      <div class="side-head"><h1>Overview</h1></div>
       <button class="btn primary big" hx-post="/api/scan" hx-target="#queue-status" hx-swap="outerHTML">
-        🔍 Scan input folder
+        🔍 Scan Directories
       </button>
       <div id="queue-status" class="queue-mini" hx-get="/api/status" hx-trigger="load, every 2s" hx-swap="outerHTML"></div>
       <div id="dash-donut" class="panel glass side-panel"></div>
