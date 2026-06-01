@@ -28,13 +28,16 @@
       </td>
     </tr>
     <tr>
-      <td><label>Frames per filmstrip</label></td>
-      <td><input type="number" name="frames_per_strip" min="1" max="40" value="{{ settings.frames_per_strip }}">
-        <div class="muted small">Stills extracted per video. Changing this affects newly processed videos.</div></td>
+      <td><label>Scan sub-folders</label></td>
+      <td>
+        <label class="check"><input type="checkbox" name="recursive" value="true" {{ 'checked' if settings.recursive }}> Recursively scan folders inside the input folder</label>
+        <div class="muted small">On: walk every sub-folder. Off: only videos directly in the input folder.</div>
+      </td>
     </tr>
     <tr>
       <td><label>Thumbnail width (px)</label></td>
-      <td><input type="number" name="thumb_width" min="80" max="640" value="{{ settings.thumb_width }}"></td>
+      <td><input type="number" name="thumb_width" min="80" max="640" value="{{ settings.thumb_width }}">
+        <div class="muted small">Each video's filmstrip uses 10 evenly-spaced stills.</div></td>
     </tr>
   </table>
 

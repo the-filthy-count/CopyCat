@@ -1,4 +1,4 @@
-{% from "partials/macros.html" import filmstrip, badges %}
+{% from "partials/macros.html" import film, icon %}
 <div id="groups-list">
   {% if not groups %}
     <div class="empty-state">
@@ -18,36 +18,28 @@
           <span class="muted small">largest kept first</span>
         </div>
         {% for v in group %}
-          <div class="member">
-            <div class="member-head">
-              <div>
-                <div class="member-name">{{ v.filename }}
-                  {% if loop.first %}<span class="tag keep">best quality</span>{% endif %}
-                </div>
-                <div class="muted small">{{ v.path }}</div>
-                {{ badges(v, is_best=loop.first) }}
-              </div>
-              <div class="actions">
-                <button class="btn ok"
+          <div class="vrow member">
+            <div class="vrow-head">
+              <span class="vrow-title" title="{{ v.path }}">{{ v.filename }}</span>
+              {% if loop.first %}<span class="tag keep">best quality</span>{% endif %}
+              <span class="vrow-actions">
+                <button class="icon-btn ok"
                         hx-post="/api/groups/{{ v.group_id }}/keep/{{ v.id }}"
                         hx-target="#groups-list" hx-swap="outerHTML"
-                        hx-confirm="Keep only '{{ v.filename }}' and delete the {{ group|length - 1 }} other(s) in this group?">
-                  ★ Keep this
-                </button>
-                <button class="btn danger"
+                        hx-confirm="Keep only '{{ v.filename }}' and delete the {{ group|length - 1 }} other(s) in this group?"
+                        aria-label="Keep this, delete the rest" data-tip="Keep this — delete the rest">{{ icon('star') }}</button>
+                <button class="icon-btn danger"
                         hx-post="/api/videos/{{ v.id }}/delete"
                         hx-target="#groups-list" hx-swap="outerHTML"
-                        hx-confirm="Delete '{{ v.filename }}'?">
-                  🗑 Delete
-                </button>
-                <button class="btn"
+                        hx-confirm="Delete '{{ v.filename }}'?"
+                        aria-label="Delete" data-tip="Delete">{{ icon('trash') }}</button>
+                <button class="icon-btn"
                         hx-post="/api/videos/{{ v.id }}/not-duplicate"
-                        hx-target="#groups-list" hx-swap="outerHTML">
-                  Not a duplicate
-                </button>
-              </div>
+                        hx-target="#groups-list" hx-swap="outerHTML"
+                        aria-label="Not a duplicate" data-tip="Not a duplicate">{{ icon('unlink') }}</button>
+              </span>
             </div>
-            {{ filmstrip(v) }}
+            {{ film(v) }}
           </div>
         {% endfor %}
       </div>

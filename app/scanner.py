@@ -31,7 +31,8 @@ def scan_input_folder() -> ScanRun:
 
     with get_session() as session:
         if root.exists():
-            for path in root.rglob("*"):
+            walk = root.rglob("*") if settings.recursive else root.glob("*")
+            for path in walk:
                 if not path.is_file() or not _is_video(path):
                     continue
                 # Skip anything inside the trash folder.

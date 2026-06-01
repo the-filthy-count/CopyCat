@@ -1,7 +1,16 @@
 {% extends "base.html" %}
+{% from "partials/macros.html" import icon %}
 {% block title %}Library{% endblock %}
 {% block content %}
-<h1>Library</h1>
-<p class="muted small">Every processed video, ordered by visual similarity. Outlined tiles are confirmed duplicate groups (amber) or close-but-unmatched near-misses (green).</p>
+<div class="page-head">
+  <h1>Library</h1>
+  <span class="help" tabindex="0">
+    <button class="icon-btn help-btn" type="button" aria-label="About this view">{{ icon('help') }}</button>
+    <div class="help-pop">
+      <p>Every processed video, ordered by visual similarity. Outlined tiles are confirmed duplicate groups (amber) or close-but-unmatched near-misses (green).</p>
+      <p>Ordered so the most visually similar videos sit next to each other — likely duplicates cluster together even when they're below the grouping threshold.</p>
+    </div>
+  </span>
+</div>
 {% include "partials/library_list.html" %}
 {% endblock %}

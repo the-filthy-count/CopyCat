@@ -9,12 +9,12 @@ services:
       DATA_DIR: /data
       # TRASH_DIR defaults to <INPUT_DIR>/.copycat-trash if unset.
       DELETE_MODE: trash          # trash | permanent
-      FRAMES_PER_STRIP: "10"
       THUMB_WIDTH: "240"
       SIMILARITY_THRESHOLD: "0.15"
       MATCH_METHOD: combined        # combined | phash | dhash | ahash | whash
       MATCH_IGNORE_DURATION: "1"    # 1 = match regardless of runtime, 0 = length-aware
       DURATION_TOLERANCE: "2"
+      RECURSIVE: "1"                # 1 = scan sub-folders, 0 = top-level only
       PORT: "8080"
     volumes:
       # Your video library. Must be read-write so files can be trashed/deleted.

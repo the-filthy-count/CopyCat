@@ -1,12 +1,18 @@
 {% extends "base.html" %}
+{% from "partials/macros.html" import icon %}
 {% block title %}Duplicates{% endblock %}
 {% block content %}
-<h1>Duplicate groups</h1>
-<div class="toolbar">
-  <form method="post" action="/api/regroup" style="display:inline">
-    <button class="btn" type="submit">↻ Re-run grouping</button>
+<div class="page-head">
+  <h1>Duplicate groups</h1>
+  <span class="help" tabindex="0">
+    <button class="icon-btn help-btn" type="button" aria-label="About duplicates">{{ icon('help') }}</button>
+    <div class="help-pop">
+      <p>Compare the stills, keep the best copy, and delete the rest. Exact copies (identical files) and visual near-duplicates are grouped together; the largest / highest-quality file is listed first.</p>
+    </div>
+  </span>
+  <form method="post" action="/api/regroup" class="head-action">
+    <button class="icon-btn" type="submit" aria-label="Re-run grouping" data-tip="Re-run grouping">{{ icon('refresh') }}</button>
   </form>
-  <span class="muted small">Compare the stills, keep the best copy, delete the rest.</span>
 </div>
 {% include "partials/groups_list.html" %}
 {% endblock %}

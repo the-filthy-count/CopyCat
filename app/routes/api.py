@@ -140,23 +140,23 @@ def save_settings(
     input_dir: str = Form(...),
     trash_dir: str = Form(""),
     delete_mode: str = Form("trash"),
-    frames_per_strip: int = Form(10),
     thumb_width: int = Form(240),
     similarity_threshold: float = Form(0.15),
     duration_tolerance: float = Form(2.0),
     match_method: str = Form("combined"),
     match_ignore_duration: bool = Form(False),
+    recursive: bool = Form(False),
 ):
     set_settings({
         "input_dir": input_dir,
         "trash_dir": trash_dir,
         "delete_mode": delete_mode,
-        "frames_per_strip": str(frames_per_strip),
         "thumb_width": str(thumb_width),
         "similarity_threshold": str(similarity_threshold),
         "duration_tolerance": str(duration_tolerance),
         "match_method": match_method,
         "match_ignore_duration": "1" if match_ignore_duration else "0",
+        "recursive": "1" if recursive else "0",
     })
     request_regroup()
     return RedirectResponse(url="/settings?saved=true", status_code=303)
