@@ -1,0 +1,20 @@
+{% macro filmstrip(video) %}
+  {% set urls = video | thumb_urls %}
+  {% if urls %}
+    <div class="filmstrip">
+      {% for u in urls %}<img class="thumb" loading="lazy" src="{{ u }}" alt="frame">{% endfor %}
+    </div>
+  {% else %}
+    <div class="filmstrip empty">No stills available{% if video.error %} — {{ video.error }}{% endif %}</div>
+  {% endif %}
+{% endmacro %}
+
+{% macro badges(video, is_best=False) %}
+  <div class="badges">
+    <span class="badge {{ 'best' if is_best }}">{{ video | resolution }}</span>
+    <span class="badge {{ 'best' if is_best }}">{{ video.size | human_size }}</span>
+    <span class="badge">{{ video.duration | human_duration }}</span>
+    <span class="badge">{{ video.bitrate | human_bitrate }}</span>
+    {% if video.codec %}<span class="badge">{{ video.codec }}</span>{% endif %}
+  </div>
+{% endmacro %}

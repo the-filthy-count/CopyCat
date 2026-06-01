@@ -1,0 +1,56 @@
+{% from "partials/macros.html" import filmstrip, badges %}
+<div id="groups-list">
+  {% if not groups %}
+    <div class="empty-state">
+      🎉 No duplicate groups found.<br>
+      <span class="small">Run a scan from the Dashboard, or adjust the similarity threshold in Settings.</span>
+    </div>
+  {% else %}
+    <p class="muted small">{{ groups|length }} group(s) · {{ reclaimable | human_size }} reclaimable if you keep one per group.</p>
+    {% for group in groups %}
+      {% set is_exact = (group | map(attribute='sha256') | unique | list | length == 1) %}
+      <div class="group">
+        <div class="group-head">
+          <h2>{{ group|length }} similar videos
+            {% if is_exact %}<span class="tag exact">exact copies</span>
+            {% else %}<span class="tag">near-duplicate</span>{% endif %}
+          </h2>
+          <span class="muted small">largest kept first</span>
+        </div>
+        {% for v in group %}
+          <div class="member">
+            <div class="member-head">
+              <div>
+                <div class="member-name">{{ v.filename }}
+                  {% if loop.first %}<span class="tag keep">best quality</span>{% endif %}
+                </div>
+                <div class="muted small">{{ v.path }}</div>
+                {{ badges(v, is_best=loop.first) }}
+              </div>
+              <div class="actions">
+                <button class="btn ok"
+                        hx-post="/api/groups/{{ v.group_id }}/keep/{{ v.id }}"
+                        hx-target="#groups-list" hx-swap="outerHTML"
+                        hx-confirm="Keep only '{{ v.filename }}' and delete the {{ group|length - 1 }} other(s) in this group?">
+                  ★ Keep this
+                </button>
+                <button class="btn danger"
+                        hx-post="/api/videos/{{ v.id }}/delete"
+                        hx-target="#groups-list" hx-swap="outerHTML"
+                        hx-confirm="Delete '{{ v.filename }}'?">
+                  🗑 Delete
+                </button>
+                <button class="btn"
+                        hx-post="/api/videos/{{ v.id }}/not-duplicate"
+                        hx-target="#groups-list" hx-swap="outerHTML">
+                  Not a duplicate
+                </button>
+              </div>
+            </div>
+            {{ filmstrip(v) }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>

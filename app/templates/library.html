@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Library{% endblock %}
+{% block content %}
+<h1>Library</h1>
+<p class="muted small">Every processed video, ordered by visual similarity. Outlined tiles are confirmed duplicate groups (amber) or close-but-unmatched near-misses (green).</p>
+{% include "partials/library_list.html" %}
+{% endblock %}

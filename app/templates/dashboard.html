@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="toolbar">
+  <button class="btn primary" hx-post="/api/scan" hx-target="#queue-status" hx-swap="outerHTML">
+    🔍 Scan input folder
+  </button>
+  <span class="muted small">Watching <code>{{ settings.input_dir }}</code></span>
+</div>
+
+{% include "partials/status.html" %}
+
+<div class="cards">
+  <div class="stat">
+    <div class="n">{{ group_count }}</div>
+    <div class="l">Duplicate groups — <a href="/groups">review</a></div>
+  </div>
+  <div class="stat">
+    <div class="n">{{ reclaimable | human_size }}</div>
+    <div class="l">Reclaimable space</div>
+  </div>
+  <div class="stat">
+    <div class="n">{{ counts.total }}</div>
+    <div class="l">Videos tracked</div>
+  </div>
+</div>
+
+{% if scan %}
+<p class="muted small">
+  Last scan: {{ scan.discovered }} new of {{ scan.seen }} files
+  {% if scan.finished_at %}at {{ scan.finished_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC{% endif %}.
+</p>
+{% endif %}
+
+{% if errors %}
+<div class="error-box">
+  <strong>{{ errors|length }} file(s) failed to process:</strong>
+  <ul class="small">
+    {% for e in errors %}<li><code>{{ e.filename }}</code> — {{ e.error }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

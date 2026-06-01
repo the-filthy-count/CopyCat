@@ -1,0 +1,34 @@
+{% from "partials/macros.html" import filmstrip, badges %}
+<div id="trash-list">
+  {% if not videos %}
+    <div class="empty-state">Trash is empty.</div>
+  {% else %}
+    <div class="toolbar">
+      <button class="btn danger"
+              hx-post="/api/trash/empty" hx-target="#trash-list" hx-swap="outerHTML"
+              hx-confirm="Permanently delete all {{ videos|length }} item(s) in the trash? This cannot be undone.">
+        Empty trash ({{ videos|length }})
+      </button>
+    </div>
+    <div class="grid">
+      {% for v in videos %}
+        <div class="tile">
+          <div class="member-name">{{ v.filename }}</div>
+          <div class="muted small">{{ v.path }}</div>
+          {{ badges(v) }}
+          {{ filmstrip(v) }}
+          <div class="actions" style="margin-top:10px">
+            <button class="btn ok"
+                    hx-post="/api/videos/{{ v.id }}/restore"
+                    hx-target="#trash-list" hx-swap="outerHTML">↩ Restore</button>
+            <button class="btn danger"
+                    hx-post="/api/videos/{{ v.id }}/delete-permanent"
+                    hx-target="#trash-list" hx-swap="outerHTML"
+                    hx-confirm="Permanently delete '{{ v.filename }}'? This cannot be undone.">
+              Delete forever</button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

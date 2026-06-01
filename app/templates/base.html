@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CopyCat — {% block title %}{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.ico" sizes="any">
+  <link rel="icon" type="image/webp" href="/static/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+  <div class="bg-aurora" aria-hidden="true"></div>
+  <nav class="nav">
+    <a class="brand" href="/"><img src="/static/logo.webp" alt="" class="logo"> <span class="brand-text">CopyCat</span></a>
+    <div class="nav-links">
+      <a href="/" class="{{ 'on' if active == 'dashboard' }}">Dashboard</a>
+      <a href="/groups" class="{{ 'on' if active == 'groups' }}">Duplicates</a>
+      <a href="/library" class="{{ 'on' if active == 'library' }}">Library</a>
+      <a href="/trash" class="{{ 'on' if active == 'trash' }}">Trash</a>
+      <a href="/settings" class="{{ 'on' if active == 'settings' }}">Settings</a>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Lightbox overlay for enlarged stills -->
+  <div id="lightbox" class="lightbox" onclick="this.classList.remove('show')">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <script>
+    document.addEventListener('click', function (e) {
+      const t = e.target;
+      if (t.matches('img.thumb')) {
+        const box = document.getElementById('lightbox');
+        document.getElementById('lightbox-img').src = t.src;
+        box.classList.add('show');
+      }
+    });
+  </script>
+</body>
+</html>

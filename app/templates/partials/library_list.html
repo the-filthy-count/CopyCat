@@ -1,0 +1,32 @@
+{% from "partials/macros.html" import filmstrip, badges %}
+<div id="library-list">
+  {% if not items %}
+    <div class="empty-state">No videos processed yet. Run a scan from the Dashboard.</div>
+  {% else %}
+    <p class="muted small">Ordered so the most visually similar videos sit next to each other — likely duplicates cluster together even when they're below the grouping threshold.</p>
+    <div class="grid">
+      {% for v, dist in items %}
+        <div class="tile {{ 'dup' if v.group_id }} {{ 'near' if dist is not none and dist <= 0.25 and not v.group_id }}">
+          <div class="member-name">{{ v.filename }}
+            {% if v.group_id %}<span class="tag exact">in duplicate group</span>{% endif %}
+            {% if v.status.value != 'done' %}<span class="tag">{{ v.status.value }}</span>{% endif %}
+          </div>
+          {% if dist is not none %}
+            <div class="sim-row">
+              <span class="sim-badge {{ 'hot' if dist <= 0.25 }}">{{ dist | similarity_pct }} similar to previous</span>
+            </div>
+          {% endif %}
+          {{ badges(v) }}
+          {{ filmstrip(v) }}
+          <div class="actions" style="margin-top:10px">
+            {% if v.group_id %}<a class="btn" href="/groups">View group</a>{% endif %}
+            <button class="btn danger"
+                    hx-post="/api/videos/{{ v.id }}/delete-library"
+                    hx-target="#library-list" hx-swap="outerHTML"
+                    hx-confirm="Delete '{{ v.filename }}'?">🗑 Delete</button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

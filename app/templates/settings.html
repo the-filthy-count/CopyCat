@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+{% if saved %}<div class="notice">Settings saved. Grouping will re-run with the new values.</div>{% endif %}
+{% if recomputing %}<div class="notice">Recomputing fingerprints from existing thumbnails in the background, then regrouping.</div>{% endif %}
+
+<form method="post" action="/api/settings">
+  <table class="form">
+    <tr>
+      <td><label>Input folder</label></td>
+      <td><input type="text" name="input_dir" value="{{ settings.input_dir }}">
+        <div class="muted small">Folder scanned for videos (container path).</div></td>
+    </tr>
+    <tr>
+      <td><label>Trash folder</label></td>
+      <td><input type="text" name="trash_dir" value="{{ settings.trash_dir }}" placeholder="(default: <input>/.copycat-trash)">
+        <div class="muted small">Where trashed files are moved. Leave blank for the default.</div></td>
+    </tr>
+    <tr>
+      <td><label>Delete mode</label></td>
+      <td>
+        <select name="delete_mode">
+          <option value="trash" {{ 'selected' if settings.delete_mode == 'trash' }}>Move to trash (reversible)</option>
+          <option value="permanent" {{ 'selected' if settings.delete_mode == 'permanent' }}>Permanently delete</option>
+        </select>
+        <div class="muted small">What the Delete button does by default.</div>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Frames per filmstrip</label></td>
+      <td><input type="number" name="frames_per_strip" min="1" max="40" value="{{ settings.frames_per_strip }}">
+        <div class="muted small">Stills extracted per video. Changing this affects newly processed videos.</div></td>
+    </tr>
+    <tr>
+      <td><label>Thumbnail width (px)</label></td>
+      <td><input type="number" name="thumb_width" min="80" max="640" value="{{ settings.thumb_width }}"></td>
+    </tr>
+  </table>
+
+  <h2 style="margin:22px 0 10px">Matching</h2>
+  <table class="form">
+    <tr>
+      <td><label>Method</label></td>
+      <td>
+        <select name="match_method">
+          <option value="combined" {{ 'selected' if settings.match_method == 'combined' }}>Combined — pHash + dHash (recommended)</option>
+          <option value="phash" {{ 'selected' if settings.match_method == 'phash' }}>pHash — perceptual (structure)</option>
+          <option value="dhash" {{ 'selected' if settings.match_method == 'dhash' }}>dHash — gradient (edges)</option>
+          <option value="ahash" {{ 'selected' if settings.match_method == 'ahash' }}>aHash — average (fast, loose)</option>
+          <option value="whash" {{ 'selected' if settings.match_method == 'whash' }}>wHash — wavelet (robust)</option>
+        </select>
+        <div class="muted small">How frames are fingerprinted and compared. Combined catches the most. Changing this regroups instantly (all hashes are pre-stored).</div>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Sensitivity (threshold)</label></td>
+      <td><input type="number" step="0.01" min="0" max="1" name="similarity_threshold" value="{{ settings.similarity_threshold }}">
+        <div class="muted small">Max distance to call two videos duplicates. 0 = identical only; higher = looser/more matches. Raise this if real duplicates are being missed (~0.15–0.25).</div></td>
+    </tr>
+    <tr>
+      <td><label>Ignore duration</label></td>
+      <td>
+        <label class="check"><input type="checkbox" name="match_ignore_duration" value="true" {{ 'checked' if settings.match_ignore_duration }}> Match on visuals regardless of runtime</label>
+        <div class="muted small">On: catches trimmed/padded copies of different length (compares every pair). Off: only compares videos with similar runtimes (faster, fewer false positives).</div>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Duration tolerance (s)</label></td>
+      <td><input type="number" step="0.5" min="0" name="duration_tolerance" value="{{ settings.duration_tolerance }}">
+        <div class="muted small">Only used when "Ignore duration" is off: max runtime difference for two videos to be compared.</div></td>
+    </tr>
+  </table>
+  <div class="toolbar" style="margin-top:16px">
+    <button class="btn primary" type="submit">Save settings</button>
+  </div>
+</form>
+
+<h2 style="margin:26px 0 10px">Maintenance</h2>
+<form method="post" action="/api/recompute">
+  <button class="btn" type="submit">↻ Recompute fingerprints</button>
+  <span class="muted small">Rebuild perceptual hashes from existing thumbnails (no re-scan), then regroup. Use after changing the frame count or upgrading.</span>
+</form>
+{% endblock %}

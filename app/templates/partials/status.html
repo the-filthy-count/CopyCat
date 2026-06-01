@@ -1,0 +1,7 @@
+<div id="queue-status" class="cards"
+     hx-get="/api/status" hx-trigger="every 2s" hx-swap="outerHTML">
+  <div class="stat"><div class="n">{{ counts.pending }}</div><div class="l">Pending</div></div>
+  <div class="stat"><div class="n">{{ counts.processing }}</div><div class="l">Processing</div></div>
+  <div class="stat"><div class="n">{{ counts.done }}</div><div class="l">Processed</div></div>
+  <div class="stat"><div class="n">{{ counts.error }}</div><div class="l">Errors</div></div>
+</div>
