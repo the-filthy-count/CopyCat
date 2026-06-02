@@ -41,6 +41,7 @@
       <button class="btn primary big" hx-post="/api/scan" hx-target="#queue-status" hx-swap="outerHTML">
         🔍 Scan Directories
       </button>
+      <div id="dash-warning"></div>
       <div id="queue-status" class="queue-mini" hx-get="/api/status" hx-trigger="load, every 2s" hx-swap="outerHTML"></div>
       <div id="dash-donut" class="panel glass side-panel"></div>
       <div id="dash-gauge" class="panel glass side-panel"></div>

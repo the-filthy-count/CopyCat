@@ -1,0 +1,13 @@
+{# Missing input-dir banner. Rendered as an out-of-band swap into #dash-warning
+   so the 2s sidebar poll keeps it current. Empty (but still swapped, to clear a
+   stale warning) when every configured input folder exists. #}
+<div id="dash-warning" {% if oob %}hx-swap-oob="true"{% endif %}>
+  {% if missing_dirs %}
+  <div class="dash-warn">
+    <strong>⚠ Input folder not found</strong>
+    <div class="muted small">Scanning these configured folders is skipped because they don't exist:</div>
+    <ul>{% for d in missing_dirs %}<li><code>{{ d }}</code></li>{% endfor %}</ul>
+    <div class="muted small">Check the path on <a href="/settings">Settings</a> (in Docker, it must be the <em>container</em> path that your library is mounted to).</div>
+  </div>
+  {% endif %}
+</div>

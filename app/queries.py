@@ -68,9 +68,16 @@ def dashboard_data(session: Session) -> dict:
         })
     max_group_size = max((tg["size"] for tg in top_groups), default=1) or 1
 
+    # Configured input dirs that aren't present on disk: the usual reason a
+    # scan finds nothing (e.g. a path not mounted into the container). Surface
+    # them so an empty scan isn't silently mistaken for "no duplicates".
+    settings = config.get_settings()
+    missing_dirs = [str(p) for p in settings.input_paths if not p.exists()]
+
     return {
         "counts": counts,
         "scan": scan,
+        "missing_dirs": missing_dirs,
         "group_count": len(groups),
         "reclaimable": reclaimable,
         "total_size": total_size,

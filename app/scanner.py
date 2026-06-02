@@ -24,6 +24,10 @@ def scan_input_folder() -> ScanRun:
     roots = settings.input_paths
     resolved_roots = [r.resolve() for r in roots if r.exists()]
 
+    missing = [str(r) for r in roots if not r.exists()]
+    if missing:
+        logger.warning("input dirs not found, skipped: %s", ", ".join(missing))
+
     run = ScanRun(started_at=utcnow())
     seen = 0
     discovered = 0
@@ -33,11 +37,23 @@ def scan_input_folder() -> ScanRun:
         for root in roots:
             if not root.exists():
                 continue
-            # Skip this directory's own (per-directory) trash folder.
+            # Skip this directory's own (per-directory) trash folder. Guard
+            # against a trash path that resolves to the root itself (or an
+            # ancestor) — that would make every file look like it's "inside
+            # trash" and skip the entire folder. config.sanitize_trash_dirname
+            # should prevent this, but never let a bad name blank a scan.
             try:
+                root_resolved = root.resolve()
                 trash = settings.trash_path_for(root).resolve()
+                if trash == root_resolved or trash in root_resolved.parents:
+                    logger.warning(
+                        "trash path %s would cover input dir %s; ignoring trash "
+                        "skip for this scan", trash, root_resolved,
+                    )
+                    trash = None
             except OSError:
                 trash = None
+            root_seen = 0
             walk = root.rglob("*") if settings.recursive else root.glob("*")
             for path in walk:
                 if not path.is_file() or not _is_video(path):
@@ -51,6 +67,7 @@ def scan_input_folder() -> ScanRun:
                         pass
 
                 seen += 1
+                root_seen += 1
                 try:
                     stat = path.stat()
                 except OSError:
@@ -82,6 +99,8 @@ def scan_input_folder() -> ScanRun:
                     existing.error = None
                     session.add(existing)
                     discovered += 1
+
+            logger.info("scanned %s: %s video files found", root, root_seen)
 
         # Prune records that should no longer appear: a file gone from disk, or
         # an active video whose folder is no longer in the input-dir list.

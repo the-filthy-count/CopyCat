@@ -148,7 +148,7 @@ def save_settings(
 ):
     set_settings({
         "input_dirs": input_dirs,
-        "trash_dirname": trash_dirname.strip() or ".copycat-trash",
+        "trash_dirname": config.sanitize_trash_dirname(trash_dirname),
         "delete_mode": delete_mode,
         "thumb_width": str(thumb_width),
         "similarity_threshold": str(similarity_threshold),

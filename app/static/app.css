@@ -314,6 +314,18 @@ select option { background: #060833; }
   margin-bottom: 18px;
   backdrop-filter: blur(8px);
 }
+.dash-warn {
+  background: rgba(255,95,114,0.12);
+  border: 1px solid rgba(255,95,114,0.5);
+  color: #ffb3bc;
+  padding: 11px 13px;
+  border-radius: var(--radius-sm);
+  margin: 10px 0;
+  font-size: 13px;
+}
+.dash-warn strong { display: block; color: var(--danger); margin-bottom: 4px; }
+.dash-warn ul { margin: 6px 0; padding-left: 18px; word-break: break-all; }
+.dash-warn code { font-size: 12px; }
 .error-box { border-color: rgba(255,95,114,0.45); padding: 14px 16px; margin-top: 18px; }
 .error-box strong { color: var(--danger); }
 .empty-state { color: var(--muted); text-align: center; padding: 80px 0; font-size: 16px; }

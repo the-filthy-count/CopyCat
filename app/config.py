@@ -43,6 +43,24 @@ DEFAULTS: dict[str, str] = {
 FRAMES_PER_STRIP = 10
 
 
+DEFAULT_TRASH_DIRNAME = ".copycat-trash"
+
+
+def sanitize_trash_dirname(name: str) -> str:
+    """Return a safe single-component trash folder name.
+
+    A blank name, ``.``/``..``, or anything containing a path separator would
+    make ``<input dir>/<name>`` resolve to the input dir itself (or escape it),
+    which collapses the scanner's "skip the trash folder" check into "skip the
+    whole folder" — every video silently disappears. Guard against that here so
+    every caller gets a name that is always a real subfolder of the input dir.
+    """
+    cleaned = (name or "").strip().strip("/\\").strip()
+    if not cleaned or cleaned in (".", "..") or "/" in cleaned or "\\" in cleaned:
+        return DEFAULT_TRASH_DIRNAME
+    return cleaned
+
+
 @dataclass
 class Settings:
     input_dirs: str            # newline/comma separated list of folders
@@ -93,7 +111,7 @@ def get_settings() -> Settings:
     raw = {**DEFAULTS, **get_all_settings()}
     return Settings(
         input_dirs=raw["input_dirs"],
-        trash_dirname=raw["trash_dirname"],
+        trash_dirname=sanitize_trash_dirname(raw["trash_dirname"]),
         delete_mode=raw["delete_mode"],
         frames_per_strip=FRAMES_PER_STRIP,
         thumb_width=int(raw["thumb_width"]),

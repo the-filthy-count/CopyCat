@@ -2,5 +2,6 @@
    (#queue-status); the donut and gauge piggy-back as out-of-band swaps so a
    single 2s poll refreshes the whole rail as processing happens. #}
 {% include "partials/status.html" %}
+{% with oob=True %}{% include "partials/dash_warning.html" %}{% endwith %}
 {% with oob=True %}{% include "partials/dash_donut.html" %}{% endwith %}
 {% with oob=True %}{% include "partials/dash_gauge.html" %}{% endwith %}
